@@ -17,11 +17,16 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
+# Store PIDs for cleanup
+PIDS=()
+
 # Function to cleanup on exit
 cleanup() {
     echo ""
     echo "🛑 Shutting down services..."
-    kill $(jobs -p) 2>/dev/null
+    for pid in "${PIDS[@]}"; do
+        kill "$pid" 2>/dev/null || true
+    done
     exit 0
 }
 
@@ -33,7 +38,7 @@ echo "📡 Starting local WebSocket broker..."
 cd packages/tools
 npm install --silent
 npm run broker &
-BROKER_PID=$!
+PIDS+=($!)
 cd ../..
 
 sleep 2
@@ -42,7 +47,7 @@ echo "🤖 Starting agent bridge..."
 cd packages/agent-bridge
 npm install --silent
 npm start &
-AGENT_PID=$!
+PIDS+=($!)
 cd ../..
 
 sleep 2
@@ -51,7 +56,7 @@ echo "🌐 Starting client server..."
 cd packages/client
 npm install --silent
 npm run dev &
-CLIENT_PID=$!
+PIDS+=($!)
 cd ../..
 
 sleep 2

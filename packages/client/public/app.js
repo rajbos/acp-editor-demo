@@ -26,7 +26,7 @@ class ACPClient {
   }
 
   generateThreadId() {
-    return `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `thread-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   initializeUI() {
@@ -210,8 +210,11 @@ class ACPClient {
       if (Array.isArray(chunk.content)) {
         const text = chunk.content.map((block) => block.text || '').join('\n');
         contentEl.textContent = text;
+      } else if (typeof chunk.content === 'string') {
+        contentEl.textContent = chunk.content;
       } else {
-        contentEl.textContent = JSON.stringify(chunk.content);
+        // Fallback for complex objects
+        contentEl.textContent = JSON.stringify(chunk.content, null, 2);
       }
 
       const timestampEl = document.createElement('div');
