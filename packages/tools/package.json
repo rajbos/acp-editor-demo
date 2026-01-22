@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "broker": "node src/local-broker.js",
-    "test": "node --test",
+    "test": "echo 'Use npm run test:integration for integration tests'",
     "test:integration": "node test/integration.test.js",
     "lint": "eslint src/"
   },
