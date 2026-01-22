@@ -1,0 +1,14 @@
+{
+  "name": "@acp-editor/token-broker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Token broker for Azure Web PubSub client access",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "echo \"No tests yet\"",
+    "lint": "eslint src/"
+  }
+}
