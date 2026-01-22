@@ -1,0 +1,15 @@
+{
+  "name": "@acp-editor/tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development tools including local WebSocket broker",
+  "type": "module",
+  "scripts": {
+    "broker": "node src/local-broker.js",
+    "test": "node --test",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}
