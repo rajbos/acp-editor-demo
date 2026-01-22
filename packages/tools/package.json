@@ -7,6 +7,7 @@
   "scripts": {
     "broker": "node src/local-broker.js",
     "test": "node --test",
+    "test:integration": "node test/integration.test.js",
     "lint": "eslint src/"
   },
   "dependencies": {
