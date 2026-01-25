@@ -24,6 +24,7 @@ Join a WebSocket group (one per thread).
 ```
 
 **Response:**
+
 ```json
 {
   "type": "joined",
@@ -59,6 +60,7 @@ Broadcast a message to all members of a group.
 ```
 
 **Notes:**
+
 - All group members (including sender) receive the broadcast
 - Messages are delivered in order
 - Disconnected clients are automatically removed from groups
@@ -92,6 +94,7 @@ Request replay of session history.
 ```
 
 **Expected Response:**
+
 - Multiple `session_update` messages containing historical chunks
 - Delivered in chronological order
 - Ensures deterministic replay
@@ -114,6 +117,7 @@ Send a user message/prompt to the agent.
 ```
 
 **Content Block Types:**
+
 - `text` - Plain text content
 - `tool_use` - Tool invocation (future)
 - `tool_result` - Tool result (future)
@@ -142,12 +146,14 @@ Broadcast update to all clients in a thread.
 ```
 
 **Chunk Roles:**
+
 - `user` - User message
 - `assistant` - AI response
 - `system` - System message
 - `error` - Error message
 
 **Chunk Structure:**
+
 ```typescript
 interface Chunk {
   role: 'user' | 'assistant' | 'system' | 'error';
@@ -180,6 +186,7 @@ interface Session {
 ```
 
 **Operations:**
+
 - `newSession(threadId)` - Create new session
 - `loadSession(threadId)` - Load and replay existing session
 - `addToHistory(threadId, chunk)` - Add message to history
@@ -202,6 +209,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "model": "llama3.2:1b",
@@ -240,6 +248,7 @@ GET http://localhost:11434/api/tags
 ```
 
 **Response:**
+
 ```json
 {
   "models": [
@@ -265,6 +274,7 @@ GET /api/token?threadId=thread-id-123
 ```
 
 **Response:**
+
 ```json
 {
   "url": "wss://your-pubsub.webpubsub.azure.com/client/hubs/your-hub",
@@ -294,6 +304,7 @@ await client.connect();
 #### Events
 
 Handled internally via WebSocket message handler:
+
 - `joined` - Successfully joined group
 - `session_update` - Received session update
 
@@ -331,6 +342,7 @@ Handled internally via WebSocket message handler:
 **Local Mode:** No rate limiting
 
 **Production (Phase 2+):**
+
 - Per-connection: 10 messages/second
 - Per-session: 100 messages/minute
 - LLM requests: 1/second per session
@@ -340,11 +352,13 @@ Handled internally via WebSocket message handler:
 ## Security
 
 ### Local Mode (Phase 1)
+
 - No authentication
 - No encryption (ws://)
 - Localhost only
 
 ### Production Mode (Phase 2+)
+
 - JWT tokens from token broker
 - TLS encryption (wss://)
 - Token expiry and refresh
@@ -361,43 +375,49 @@ Handled internally via WebSocket message handler:
 const ws = new WebSocket('ws://localhost:8080');
 
 // 2. Join group
-ws.send(JSON.stringify({
-  action: 'joinGroup',
-  group: 'my-thread-123'
-}));
+ws.send(
+  JSON.stringify({
+    action: 'joinGroup',
+    group: 'my-thread-123',
+  })
+);
 
 // 3. Join session (ACP message)
-ws.send(JSON.stringify({
-  action: 'sendToGroup',
-  group: 'my-thread-123',
-  data: {
-    type: 'join',
-    threadId: 'my-thread-123'
-  }
-}));
+ws.send(
+  JSON.stringify({
+    action: 'sendToGroup',
+    group: 'my-thread-123',
+    data: {
+      type: 'join',
+      threadId: 'my-thread-123',
+    },
+  })
+);
 
 // 4. Load history
-ws.send(JSON.stringify({
-  action: 'sendToGroup',
-  group: 'my-thread-123',
-  data: {
-    type: 'loadSession',
-    threadId: 'my-thread-123'
-  }
-}));
+ws.send(
+  JSON.stringify({
+    action: 'sendToGroup',
+    group: 'my-thread-123',
+    data: {
+      type: 'loadSession',
+      threadId: 'my-thread-123',
+    },
+  })
+);
 
 // 5. Send prompt
-ws.send(JSON.stringify({
-  action: 'sendToGroup',
-  group: 'my-thread-123',
-  data: {
-    type: 'queuePrompt',
-    threadId: 'my-thread-123',
-    contentBlocks: [
-      { type: 'text', text: 'Hello!' }
-    ]
-  }
-}));
+ws.send(
+  JSON.stringify({
+    action: 'sendToGroup',
+    group: 'my-thread-123',
+    data: {
+      type: 'queuePrompt',
+      threadId: 'my-thread-123',
+      contentBlocks: [{ type: 'text', text: 'Hello!' }],
+    },
+  })
+);
 
 // 6. Receive updates
 ws.on('message', (data) => {

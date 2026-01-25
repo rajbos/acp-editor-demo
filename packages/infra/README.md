@@ -84,11 +84,13 @@ terraform apply
 ### Typical Monthly Cost (Beyond Free Tier)
 
 Small development workload:
+
 - Web PubSub Standard: ~$50/month (1 unit)
 - ACA Consumption: ~$10-20/month (with scale-to-zero)
 - **Total: ~$60-70/month**
 
 Production workload (minimal):
+
 - Web PubSub Standard: ~$100/month (2 units)
 - ACA Consumption: ~$50/month
 - **Total: ~$150/month**

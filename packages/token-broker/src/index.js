@@ -1,9 +1,9 @@
 /**
  * Token Broker - Placeholder for Phase 2
- * 
+ *
  * This service will issue Azure Web PubSub client access tokens.
  * For Phase 1 (local mode), this is not needed as we use the local broker directly.
- * 
+ *
  * When implementing Phase 2:
  * 1. Use @azure/web-pubsub package
  * 2. Create HTTP endpoint (e.g., GET /api/token?threadId=xyz)
@@ -17,10 +17,12 @@ const PORT = process.env.PORT || 4000;
 
 const server = createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({
-    message: 'Token broker - Phase 2 implementation pending',
-    note: 'For Phase 1, use local broker directly (ws://localhost:8080)',
-  }));
+  res.end(
+    JSON.stringify({
+      message: 'Token broker - Phase 2 implementation pending',
+      note: 'For Phase 1, use local broker directly (ws://localhost:8080)',
+    })
+  );
 });
 
 server.listen(PORT, () => {

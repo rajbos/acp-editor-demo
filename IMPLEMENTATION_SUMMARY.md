@@ -9,17 +9,20 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 ### Phase 0: Foundation ✅ COMPLETE
 
 **Monorepo Structure**
+
 - 6 npm workspace packages with clear separation of concerns
 - Shared message contract library for type safety
 - Consistent build tooling across all packages
 
 **Developer Experience**
+
 - ESLint and Prettier for code quality
 - Docker and Docker Compose for containerization
 - One-command local development (`./start-local.sh`)
 - Comprehensive documentation (5 markdown files)
 
 **CI/CD Foundation**
+
 - GitHub Actions workflows for lint, test, and build
 - Separate jobs for independent parallelization
 - Docker build caching for faster iterations
@@ -27,12 +30,14 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 ### Phase 1: Local-First Development ✅ MOSTLY COMPLETE
 
 **Local WebSocket Broker**
+
 - Mimics Azure Web PubSub group semantics
 - Handles 100+ concurrent connections
 - Automatic cleanup on disconnect
 - Integration tested (3 test scenarios)
 
 **ACP Agent Bridge**
+
 - Implements ACP session lifecycle (join, load, prompt)
 - In-memory session storage
 - FIFO prompt queue
@@ -40,6 +45,7 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 - Ready for LLM integration (stub implementation)
 
 **Browser Client**
+
 - Clean, responsive UI built with vanilla JavaScript
 - Real-time transcript updates
 - URL-based thread sharing
@@ -47,6 +53,7 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 - Keyboard shortcuts (Enter to send, Shift+Enter for newline)
 
 **Docker Orchestration**
+
 - 4-service Docker Compose setup
 - Ollama integration ready
 - Volume persistence for LLM models
@@ -55,12 +62,14 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 ### Phase 1.5: Testing & Documentation ✅ COMPLETE
 
 **Testing Infrastructure**
+
 - Unit tests for message validation (6 tests, all passing)
 - Integration tests for broker (3 scenarios, all passing)
 - Test runner script for CI/CD
 - Framework for E2E tests
 
 **Documentation**
+
 - **README.md**: Project overview and quick start
 - **DEVELOPMENT.md**: Developer workflows and debugging
 - **TESTING.md**: Testing strategies and guides
@@ -72,6 +81,7 @@ This repository contains a **multi-client, real-time co-creation editor** that e
 ### Infrastructure as Code (Prepared)
 
 **Bicep Templates**
+
 - Azure Web PubSub provisioning
 - Azure Container Apps environment
 - 3 container app definitions (token-broker, agent-bridge, mini-llm)
@@ -163,12 +173,12 @@ acp-editor-demo/
 
 ## Testing Coverage
 
-| Package | Unit Tests | Integration Tests | Coverage |
-|---------|------------|-------------------|----------|
-| shared | ✅ 6 tests | N/A | 100% |
-| tools | N/A | ✅ 3 scenarios | 90% |
-| agent-bridge | ⏳ TODO | ⏳ TODO | 0% |
-| client | ⏳ TODO | ⏳ TODO | 0% |
+| Package      | Unit Tests | Integration Tests | Coverage |
+| ------------ | ---------- | ----------------- | -------- |
+| shared       | ✅ 6 tests | N/A               | 100%     |
+| tools        | N/A        | ✅ 3 scenarios    | 90%      |
+| agent-bridge | ⏳ TODO    | ⏳ TODO           | 0%       |
+| client       | ⏳ TODO    | ⏳ TODO           | 0%       |
 
 ## What Works Right Now
 
@@ -242,6 +252,7 @@ acp-editor-demo/
 ## Success Criteria
 
 ### Phase 0 & 1 ✅
+
 - [x] Multiple clients can join same thread
 - [x] Messages sync in real-time
 - [x] Session history is replayed
@@ -250,12 +261,14 @@ acp-editor-demo/
 - [x] Tests pass in CI
 
 ### Phase 2 (Pending)
+
 - [ ] Clients connect via Azure Web PubSub
 - [ ] Token broker issues valid JWT tokens
 - [ ] Infrastructure deploys via Bicep
 - [ ] Costs stay within free tier limits
 
 ### Phase 3 (Pending)
+
 - [ ] Sessions persist across restarts
 - [ ] E2E tests cover critical paths
 - [ ] Security audit passes
@@ -293,6 +306,7 @@ MIT
 ## Contributors
 
 Built following the comprehensive ACP Editor specification with:
+
 - Phase-by-phase implementation
 - Test-driven approach
 - Documentation-first mindset

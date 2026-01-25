@@ -3,6 +3,7 @@
 ## Overview
 
 This project includes multiple levels of testing:
+
 1. Unit tests for message validation
 2. Integration tests for local components
 3. Docker Compose smoke tests
@@ -101,18 +102,20 @@ import WebSocket from 'ws';
 
 test('client can join and send messages', async (t) => {
   const ws = new WebSocket('ws://localhost:8080');
-  
+
   await new Promise((resolve) => {
     ws.on('open', resolve);
   });
-  
-  ws.send(JSON.stringify({
-    action: 'joinGroup',
-    group: 'test'
-  }));
-  
+
+  ws.send(
+    JSON.stringify({
+      action: 'joinGroup',
+      group: 'test',
+    })
+  );
+
   // Add assertions...
-  
+
   ws.close();
 });
 ```
@@ -128,6 +131,7 @@ GitHub Actions runs tests on every push:
 ## Test Coverage
 
 Current test coverage:
+
 - ✅ Message validation (shared package)
 - ⏳ Agent bridge logic (TODO)
 - ⏳ Integration tests (TODO)

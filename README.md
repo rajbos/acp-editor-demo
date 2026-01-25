@@ -46,6 +46,7 @@ docker-compose up
 ```
 
 This starts:
+
 - **Local WebSocket Broker** on `ws://localhost:8080`
 - **Agent Bridge** connecting to broker and LLM
 - **Mini LLM (Ollama)** on `http://localhost:11434`
@@ -96,6 +97,7 @@ npm test -w packages/agent-bridge
 All messages follow this JSON envelope structure:
 
 ### Client → Agent
+
 ```json
 {
   "type": "join",
@@ -117,6 +119,7 @@ All messages follow this JSON envelope structure:
 ```
 
 ### Agent → Clients
+
 ```json
 {
   "type": "session_update",
@@ -132,12 +135,14 @@ All messages follow this JSON envelope structure:
 ## Development Roadmap
 
 ### ✅ Phase 0: Repository & Project Scaffolding
+
 - [x] Create monorepo structure
 - [x] Define shared message contract
 - [x] Add dev tooling (ESLint, Prettier)
 - [x] Create base configuration
 
 ### 🚧 Phase 1: Local-First Bring-Up (In Progress)
+
 - [x] Local WebSocket broker (Node.js ws)
 - [x] ACP agent bridge (basic implementation)
 - [x] Browser client MVP
@@ -146,34 +151,40 @@ All messages follow this JSON envelope structure:
 - [ ] Integration tests
 
 ### 📋 Phase 2: Azure Real-Time Backbone
+
 - [ ] Azure Web PubSub infrastructure
 - [ ] Token broker service
 - [ ] Update client for Web PubSub
 - [ ] Remote testing
 
 ### 📋 Phase 3: Containerize & Deploy
+
 - [ ] Dockerfiles for all services
 - [ ] Azure Container Apps (ACA) infrastructure
 - [ ] Scale-to-zero configuration
 - [ ] Deployment documentation
 
 ### 📋 Phase 4: Persistence & Replay
+
 - [ ] Session storage implementation
 - [ ] session/load replay functionality
 - [ ] Deterministic replay testing
 
 ### 📋 Phase 5: Testing & Quality
+
 - [ ] Unit tests for agent-bridge
 - [ ] Integration tests (local)
 - [ ] Cloud smoke tests
 - [ ] Performance testing
 
 ### 📋 Phase 6: Security & Cost Controls
+
 - [ ] Web PubSub token scoping
 - [ ] Network security boundaries
 - [ ] Cost optimization documentation
 
 ### 📋 Phase 7: CI/CD
+
 - [ ] GitHub Actions workflows
 - [ ] Automated testing
 - [ ] Deployment automation

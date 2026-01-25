@@ -57,12 +57,12 @@ docker run -d -p 11434:8080 \
 
 For cost-efficient development and deployment:
 
-| Model | Size | Use Case |
-|-------|------|----------|
-| llama3.2:1b | 1.3 GB | Development/testing |
+| Model       | Size   | Use Case                    |
+| ----------- | ------ | --------------------------- |
+| llama3.2:1b | 1.3 GB | Development/testing         |
 | phi3.5:3.8b | 2.2 GB | Better quality, still small |
-| gemma2:2b | 1.6 GB | Good balance |
-| llama3.2:3b | 2.0 GB | Production-ready |
+| gemma2:2b   | 1.6 GB | Good balance                |
+| llama3.2:3b | 2.0 GB | Production-ready            |
 
 ## Integration with Agent Bridge
 
