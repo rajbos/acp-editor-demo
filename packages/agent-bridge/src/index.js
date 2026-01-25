@@ -158,11 +158,13 @@ class AgentBridge {
       return;
     }
 
-    // Add user message to history
+    // Add user message to history (preserve sender metadata)
     const userChunk = {
       role: 'user',
       content: contentBlocks,
       timestamp: new Date().toISOString(),
+      clientId: message.clientId,
+      displayName: message.displayName,
     };
     session.history.push(userChunk);
 

@@ -78,6 +78,8 @@ main {
   padding: 2rem;
   overflow-y: auto;
   background: #fafafa;
+  display: flex;
+  flex-direction: column;
 }
 
 .welcome-message {
@@ -99,16 +101,25 @@ main {
   border-radius: 8px;
   background: white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 75%;
 }
 
-.message.user {
+/* Local messages (this client) align right */
+.message.local {
+  align-self: flex-end;
   background: #e3f2fd;
-  margin-left: 2rem;
+  text-align: right;
 }
 
+/* Remote messages align left */
+.message.remote {
+  align-self: flex-start;
+  background: #ffffff;
+}
+
+/* Assistant messages (bot) */
 .message.assistant {
   background: #f1f8e9;
-  margin-right: 2rem;
 }
 
 .message.error {

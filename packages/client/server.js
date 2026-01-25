@@ -18,7 +18,9 @@ const mimeTypes = {
 };
 
 const server = createServer(async (req, res) => {
-  let filePath = join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const pathname = url.pathname;
+  let filePath = join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
 
   try {
     const content = await readFile(filePath);

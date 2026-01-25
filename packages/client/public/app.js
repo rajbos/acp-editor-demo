@@ -11,6 +11,19 @@ class ACPClient {
     this.threadId = null;
     this.connected = false;
     this.transcript = [];
+    // Persistent client identifier and display name per tab/session
+    this.clientId = sessionStorage.getItem('acp_client_id') || null;
+    if (!this.clientId) {
+      this.clientId = `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
+      sessionStorage.setItem('acp_client_id', this.clientId);
+    }
+
+    this.displayName = sessionStorage.getItem('acp_display_name') || null;
+    if (!this.displayName) {
+      // Friendly generated name
+      this.displayName = `User-${this.clientId.slice(-4)}`;
+      sessionStorage.setItem('acp_display_name', this.displayName);
+    }
 
     // Get thread ID from URL
     const params = new URLSearchParams(window.location.search);
@@ -33,6 +46,12 @@ class ACPClient {
     // Update thread ID display
     document.getElementById('current-thread').textContent = this.threadId;
     document.getElementById('thread-id').textContent = `Thread: ${this.threadId}`;
+    // Show your name in the header
+    const headerEl = document.createElement('div');
+    headerEl.style.fontSize = '0.9rem';
+    headerEl.style.color = '#fff';
+    headerEl.textContent = `You: ${this.displayName}`;
+    document.querySelector('header .status').appendChild(headerEl);
 
     // Set up form handler
     const form = document.getElementById('prompt-form');
@@ -115,6 +134,8 @@ class ACPClient {
     this.sendToGroup({
       type: 'join',
       threadId: this.threadId,
+      clientId: this.clientId,
+      displayName: this.displayName,
     });
 
     // Load session history
@@ -122,6 +143,8 @@ class ACPClient {
       this.sendToGroup({
         type: 'loadSession',
         threadId: this.threadId,
+        clientId: this.clientId,
+        displayName: this.displayName,
       });
     }, 100);
   }
@@ -135,8 +158,21 @@ class ACPClient {
     const message = {
       type: 'queuePrompt',
       threadId: this.threadId,
+      clientId: this.clientId,
+      displayName: this.displayName,
       contentBlocks: [{ type: 'text', text }],
     };
+
+    // Show the user's own message immediately in the transcript
+    const userChunk = {
+      role: 'user',
+      content: message.contentBlocks,
+      timestamp: new Date().toISOString(),
+      clientId: this.clientId,
+      displayName: this.displayName,
+    };
+    this.transcript.push(userChunk);
+    this.renderTranscript();
 
     this.sendToGroup(message);
   }
@@ -167,6 +203,23 @@ class ACPClient {
         case 'session_update':
           this.handleSessionUpdate(message);
           break;
+        // Handle queuePrompt payloads (remote user messages)
+        case 'queuePrompt': {
+          // Convert to session chunk and let handleSessionUpdate apply dedupe logic
+          const chunk = {
+            role: 'user',
+            content: message.contentBlocks || [],
+            timestamp: message.timestamp || new Date().toISOString(),
+            clientId: message.clientId,
+            displayName: message.displayName,
+          };
+          this.handleSessionUpdate({ chunk });
+          break;
+        }
+        // Ignore ACP lifecycle messages intended only for the agent
+        case 'join':
+        case 'loadSession':
+          break;
         default:
           console.log('⚠️  Unknown message type:', message.type);
       }
@@ -178,6 +231,24 @@ class ACPClient {
   handleSessionUpdate(message) {
     const { chunk } = message;
     console.log('📝 Session update:', chunk);
+
+    // Avoid duplicate user message (local echo)
+    const last = this.transcript[this.transcript.length - 1];
+    if (
+      chunk.role === 'user' &&
+      last &&
+      last.role === 'user' &&
+      Array.isArray(chunk.content) &&
+      Array.isArray(last.content) &&
+      chunk.content.length === last.content.length &&
+      chunk.content.every((c, i) => c.text === last.content[i].text)
+    ) {
+      // It's a local echo, skip adding
+      return;
+    }
+
+    // Mark local messages for alignment and label
+    chunk._isLocal = chunk.clientId && chunk.clientId === this.clientId;
 
     this.transcript.push(chunk);
     this.renderTranscript();
@@ -197,11 +268,17 @@ class ACPClient {
 
     this.transcript.forEach((chunk) => {
       const messageEl = document.createElement('div');
-      messageEl.className = `message ${chunk.role || 'system'}`;
+      const roleClass = chunk.role || 'system';
+      const localityClass = chunk._isLocal ? 'local' : 'remote';
+      messageEl.className = `message ${roleClass} ${localityClass}`;
 
       const roleEl = document.createElement('div');
       roleEl.className = 'role';
-      roleEl.textContent = chunk.role || 'system';
+      if (chunk._isLocal) {
+        roleEl.textContent = `${chunk.displayName || 'You'} (you)`;
+      } else {
+        roleEl.textContent = chunk.displayName || chunk.role || 'system';
+      }
 
       const contentEl = document.createElement('div');
       contentEl.className = 'content';
