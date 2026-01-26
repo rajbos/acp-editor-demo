@@ -175,11 +175,28 @@ class AgentBridge {
       chunk: userChunk,
     });
 
-    // Call mini LLM (simplified for MVP)
+    // Call mini LLM (supports streaming partial responses)
     try {
-      const response = await this.callLLM(contentBlocks);
 
-      // Add assistant response to history
+      const onChunk = (partialText) => {
+        // Broadcast partial assistant chunk (do not persist to history yet)
+        const partialChunk = {
+          role: 'assistant',
+          content: [{ type: 'text', text: partialText }],
+          timestamp: new Date().toISOString(),
+          _partial: true,
+        };
+
+        this.broadcastToGroup(threadId, {
+          type: MessageType.SESSION_UPDATE,
+          threadId,
+          chunk: partialChunk,
+        });
+      };
+
+      const response = await this.callLLM(contentBlocks, onChunk);
+
+      // Final assistant chunk (persisted)
       const assistantChunk = {
         role: 'assistant',
         content: [{ type: 'text', text: response }],
@@ -187,7 +204,7 @@ class AgentBridge {
       };
       session.history.push(assistantChunk);
 
-      // Broadcast assistant response
+      // Broadcast final assistant response (mark as final)
       this.broadcastToGroup(threadId, {
         type: MessageType.SESSION_UPDATE,
         threadId,
@@ -213,27 +230,71 @@ class AgentBridge {
     }
   }
 
-  async callLLM(contentBlocks) {
-    // For MVP: simple echo or mock response
-    // In Phase 1, this will connect to Ollama
+  async callLLM(contentBlocks, onChunk) {
+    // Call Ollama HTTP API. If `onChunk` is provided, stream partial outputs
     const userText = contentBlocks.map((b) => b.text || '').join(' ');
     console.log(`🤖 LLM input: ${userText}`);
 
-    // Mock response for now
-    return `Echo: ${userText} (LLM not connected yet - this is a mock response)`;
+    const model = process.env.OLLAMA_MODEL || 'llama3.2:1b';
+    const url = `${LLM_URL.replace(/\/+$/,'')}/api/generate`;
 
-    // TODO: Implement Ollama integration
-    // const response = await fetch(`${LLM_URL}/api/generate`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     model: 'llama3.2',
-    //     prompt: userText,
-    //     stream: false,
-    //   }),
-    // });
-    // const data = await response.json();
-    // return data.response;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt: userText,
+          stream: !!onChunk,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`LLM request failed: ${res.status} ${res.statusText} - ${text}`);
+      }
+
+      if (onChunk && res.body) {
+        // Stream response body and forward text chunks to onChunk
+        const reader = res.body.getReader ? res.body.getReader() : null;
+        const decoder = new TextDecoder();
+        let accumulated = '';
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const text = decoder.decode(value, { stream: true });
+            onChunk(text);
+            accumulated += text;
+          }
+        } else {
+          for await (const chunk of res.body) {
+            const text = chunk.toString();
+            onChunk(text);
+            accumulated += text;
+          }
+        }
+
+        // Attempt to parse accumulated JSON if the API streams JSON objects
+        try {
+          const parsed = JSON.parse(accumulated);
+          const candidate = parsed.response || parsed.text || (Array.isArray(parsed) && parsed[0] && (parsed[0].response || parsed[0].text));
+          return typeof candidate === 'string' ? candidate : accumulated;
+        } catch (e) {
+          return accumulated;
+        }
+      }
+
+      // Non-streaming response
+      const data = await res.json();
+      const candidate = data.response || data.text || (Array.isArray(data) && data[0] && (data[0].response || data[0].text));
+      if (typeof candidate === 'string') return candidate;
+      return JSON.stringify(data);
+    } catch (err) {
+      console.error('❌ Ollama call failed:', err.message || err);
+      return `Echo: ${userText} (LLM unavailable: ${err.message || 'unknown error'})`;
+    }
   }
 
   broadcastToGroup(group, data) {

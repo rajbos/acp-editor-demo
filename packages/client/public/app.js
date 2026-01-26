@@ -174,6 +174,16 @@ class ACPClient {
     this.transcript.push(userChunk);
     this.renderTranscript();
 
+    // Add a pending assistant placeholder so UI shows waiting state
+    const pendingAssistant = {
+      role: 'assistant',
+      content: [{ type: 'text', text: '' }],
+      timestamp: new Date().toISOString(),
+      _pending: true,
+    };
+    this.transcript.push(pendingAssistant);
+    this.renderTranscript();
+
     this.sendToGroup(message);
   }
 
@@ -249,6 +259,104 @@ class ACPClient {
 
     // Mark local messages for alignment and label
     chunk._isLocal = chunk.clientId && chunk.clientId === this.clientId;
+
+    // If this is a user message, avoid adding a duplicate when the originating client already echoed it.
+    if (chunk.role === 'user') {
+      const normalize = (c) => (Array.isArray(c) ? c.map((b) => b.text || '').join('\n') : String(c || ''));
+      const incoming = normalize(chunk.content);
+      const exists = this.transcript.some((item) => item.role === 'user' && item.clientId === chunk.clientId && normalize(item.content) === incoming);
+      if (exists) return; // duplicate local echo — ignore
+    }
+
+    // Helper: extract plain text from chunk.content (handles arrays, strings, JSON blobs)
+    const extractText = (content) => {
+      if (content === null || content === undefined) return '';
+      let s = '';
+      if (Array.isArray(content)) s = content.map((b) => b.text || '').join('\n');
+      else if (typeof content === 'string') s = content;
+      else s = String(content);
+
+      // Try parse JSON single object
+      try {
+        const parsed = JSON.parse(s);
+        if (typeof parsed === 'object' && parsed !== null) {
+          if (parsed.response) return parsed.response;
+          if (parsed.text) return parsed.text;
+        }
+      } catch (e) {
+        // not a single JSON object — may be multiple JSON fragments streamed
+        // Extract all response fields and join them
+        const re = /"response"\s*:\s*"([^\"]*)"/g;
+        const parts = [];
+        let m;
+        while ((m = re.exec(s)) !== null) {
+          parts.push(m[1].replace(/\\"/g, '"').replace(/\\n/g, '\n'));
+        }
+        if (parts.length > 0) return parts.join('');
+      }
+
+      return s;
+    };
+
+    // Handle assistant partials and final responses to update pending placeholder
+    if (chunk.role === 'assistant') {
+      // If this is a partial update, update the last pending assistant
+      if (chunk._partial) {
+        // find last pending assistant
+        for (let i = this.transcript.length - 1; i >= 0; i--) {
+          const item = this.transcript[i];
+          if (item.role === 'assistant' && (item._pending || item._partial)) {
+            // append partial text (normalized) to either a pending or an existing partial
+            const partialText = extractText(chunk.content || '');
+            const existing = extractText(item.content || '');
+            item.content = [{ type: 'text', text: existing + partialText }];
+            // mark as partial if it wasn't pending
+            item._partial = true;
+            this.renderTranscript();
+            return;
+          }
+        }
+
+        // No pending assistant found: create a transient assistant partial
+        const partialText = extractText(chunk.content || '');
+        this.transcript.push({
+          role: 'assistant',
+          content: [{ type: 'text', text: partialText }],
+          timestamp: chunk.timestamp || new Date().toISOString(),
+          _partial: true,
+        });
+        this.renderTranscript();
+        return;
+      }
+
+      // Final assistant response: replace pending or append
+      // Normalize final content to ensure we show only the response text
+      const finalText = extractText(chunk.content);
+      const finalContent = [{ type: 'text', text: finalText }];
+
+      let replaced = false;
+      for (let i = this.transcript.length - 1; i >= 0; i--) {
+        const item = this.transcript[i];
+        if (item.role === 'assistant' && (item._pending || item._partial)) {
+          // replace content and clear pending/partial flags
+          item.content = finalContent;
+          item.timestamp = chunk.timestamp || new Date().toISOString();
+          delete item._pending;
+          delete item._partial;
+          replaced = true;
+          break;
+        }
+      }
+
+      if (!replaced) {
+        // push normalized final chunk
+        const pushed = Object.assign({}, chunk, { content: finalContent });
+        this.transcript.push(pushed);
+      }
+
+      this.renderTranscript();
+      return;
+    }
 
     this.transcript.push(chunk);
     this.renderTranscript();

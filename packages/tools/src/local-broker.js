@@ -71,6 +71,19 @@ server.on('connection', (ws) => {
             client.send(JSON.stringify(payload));
           }
         });
+
+        // Also forward a copy to the agent-bridge group so the agent can observe thread ACP messages
+        // This allows the agent bridge to receive queuePrompt/loadSession/join messages even when
+        // it isn't a member of every thread group.
+        if (group !== 'agent-bridge' && groups.has('agent-bridge')) {
+          const agentMembers = groups.get('agent-bridge');
+          agentMembers.forEach((client) => {
+            if (client.readyState === 1) {
+              client.send(JSON.stringify(payload));
+            }
+          });
+        }
+
         return;
       }
 
