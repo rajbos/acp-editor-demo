@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACP Co-Creation Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 ACP Co-Creation Editor</h1>
+            <div class="status">
+                <span id="status" class="status-disconnected">⚫ Disconnected</span>
+                <span id="thread-id"></span>
+            </div>
+        </header>
+
+        <main>
+            <div class="transcript" id="transcript">
+                <div class="welcome-message">
+                    <h2>Welcome to the ACP Co-Creation Editor</h2>
+                    <p>Share this URL with collaborators to work together in real-time.</p>
+                    <p><strong>Thread ID:</strong> <span id="current-thread"></span></p>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <form id="prompt-form">
+                    <textarea 
+                        id="prompt-input" 
+                        placeholder="Type your message and press Enter (Shift+Enter for new line)..."
+                        rows="3"
+                    ></textarea>
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+        </main>
+
+        <footer>
+            <p>Local Mode • WebSocket Broker • Phase 1 MVP</p>
+        </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

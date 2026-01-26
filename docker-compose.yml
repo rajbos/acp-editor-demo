@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Local WebSocket Broker (mimics Azure Web PubSub)
+  broker:
+    build:
+      context: ./packages/tools
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - WS_PORT=8080
+    networks:
+      - acp-network
+
+  # ACP Agent Bridge
+  agent-bridge:
+    build:
+      context: ./packages/agent-bridge
+      dockerfile: Dockerfile
+    depends_on:
+      - broker
+      - mini-llm
+    environment:
+      - BROKER_URL=ws://broker:8080
+      - LLM_URL=http://mini-llm:11434
+    networks:
+      - acp-network
+
+  # Mini LLM (Ollama)
+  mini-llm:
+    image: ollama/ollama:latest
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - acp-network
+
+  # Browser Client Server
+  client:
+    build:
+      context: ./packages/client
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+    networks:
+      - acp-network
+
+volumes:
+  ollama-data:
+
+networks:
+  acp-network:
+    driver: bridge

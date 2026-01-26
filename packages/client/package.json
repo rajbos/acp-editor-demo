@@ -1,0 +1,12 @@
+{
+  "name": "@acp-editor/client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser client for ACP co-creation editor",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "test": "echo \"No tests yet\"",
+    "lint": "eslint public/"
+  }
+}
